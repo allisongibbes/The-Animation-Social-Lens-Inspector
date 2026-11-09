@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Social Lens Inspector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .cinzel {
+            font-family: 'Cinzel', serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl text-center mb-6">
+        <div class="inline-block px-4 py-1 mb-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 text-xs font-semibold tracking-wider uppercase">
+            Animated Cinema Social Critique
+        </div>
+        <h1 class="cinzel text-3xl md:text-5xl font-extrabold text-emerald-400 tracking-wide mb-2">
+            Animation Social Lens Inspector
+        </h1>
+        <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
+            Test your critical eye! Identify which social issue is being critiqued in each animated scenario.
+        </p>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 md:p-10 relative">
+        
+        <!-- HUD / Stats Bar -->
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6 text-sm md:text-base font-medium">
+            <div class="flex items-center space-x-2">
+                <span class="text-slate-400">Scenario:</span>
+                <span id="current-case-num" class="text-emerald-400 font-bold">1</span>
+                <span class="text-slate-600">/</span>
+                <span id="total-cases" class="text-slate-400">4</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-1">
+                    <span>🔥</span>
+                    <span class="text-slate-400">Streak:</span>
+                    <span id="streak-count" class="text-orange-400 font-bold">0</span>
+                </div>
+                <div class="flex items-center space-x-1 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+                    <span class="text-emerald-400 font-bold">Score:</span>
+                    <span id="score-val" class="text-emerald-400 font-bold">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question View -->
+        <div id="quiz-view">
+            <!-- Scenario Box -->
+            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 md:p-6 mb-6">
+                <div class="text-xs uppercase tracking-wider text-emerald-500/80 font-bold mb-2 flex items-center justify-between">
+                    <span>🎬 Animated Scenario File</span>
+                </div>
+                <p id="scenario-text" class="text-slate-200 text-lg md:text-xl font-medium leading-relaxed mb-4 italic">
+                    Loading scenario...
+                </p>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800/80 text-xs text-slate-400">
+                    <strong class="text-slate-300">Inspector Objective:</strong> Select the primary social critique represented above.
+                </div>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="options-grid" class="grid grid-cols-1 gap-3 mb-6">
+                <!-- Dynamically populated options -->
+            </div>
+        </div>
+
+        <!-- Feedback View (Hidden by default) -->
+        <div id="feedback-view" class="hidden text-center py-6">
+            <div id="feedback-icon" class="text-5xl mb-3">✅</div>
+            <h2 id="feedback-title" class="cinzel text-2xl font-bold mb-2 text-emerald-400">Correct Critique!</h2>
+            <p id="feedback-desc" class="text-slate-300 text-sm md:text-base max-w-lg mx-auto mb-6 leading-relaxed">
+                Explanation goes here...
+            </p>
+            <button onclick="nextCase()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                Next Scenario ➔
+            </button>
+        </div>
+
+        <!-- Completion Screen (Hidden by default) -->
+        <div id="completion-view" class="hidden text-center py-8">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="cinzel text-3xl font-extrabold text-emerald-400 mb-2">Master Animation Analyst!</h2>
+            <p class="text-slate-300 mb-6 text-base">You have successfully uncovered the hidden social critiques in animated cinema.</p>
+            
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 max-w-sm mx-auto mb-6">
+                <div class="text-slate-400 text-sm mb-1">Final Score</div>
+                <div id="final-score" class="text-4xl font-extrabold text-emerald-400 mb-2">0 / 400</div>
+                <div id="final-badge" class="text-xs uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 py-1 rounded border border-emerald-500/20">Rank: Elite Analyst</div>
+            </div>
+
+            <button onclick="restartGame()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                Re-open Case Files 🔄
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-6 text-slate-600 text-xs text-center">
+        Film Studies Non-Majors Curriculum &bull; Interactive Educational Widget
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script>
+        const scenarios = [
+            {
+                id: 1,
+                scenario: "A bustling city where predator and prey animals live side-by-side, but smaller and marginalized species face systemic hiring biases, police profiling, and institutional stereotyping.",
+                correctAnswer: "Systemic Prejudice and Social Bias",
+                explanation: "This scenario examines how animated worlds mirror real-world institutional discrimination, stereotyping, and civil rights struggles.",
+                options: [
+                    "Systemic Prejudice and Social Bias",
+                    "Corporate Consumerism and Technological Dependence",
+                    "Class Stratification and Economic Division",
+                    "Traditional Gender Role Subversion"
+                ]
+            },
+            {
+                id: 2,
+                scenario: "Humans float comfortably on a massive, fully automated spaceship run by a single megacorporation, completely detached from physical reality, nature, and human connection while glued to digital screens.",
+                correctAnswer: "Corporate Consumerism and Technological Dependence",
+                explanation: "This critique highlights the dangers of unchecked corporate monopolies, mindless consumption, and human isolation caused by technology.",
+                options: [
+                    "Systemic Prejudice and Social Bias",
+                    "Corporate Consumerism and Technological Dependence",
+                    "Class Stratification and Economic Division",
+                    "Traditional Gender Role Subversion"
+                ]
+            },
+            {
+                id: 3,
+                scenario: "An urban society is physically segregated by vertical architecture, where the wealthy elite live in towering, sunlit skyscrapers, while the working class labors in cramped, polluted industrial undercities.",
+                correctAnswer: "Class Stratification and Economic Division",
+                explanation: "This uses architectural mise-en-scène and spatial politics to visualize material inequality and the gaps in capitalist economic systems.",
+                options: [
+                    "Class Stratification and Economic Division",
+                    "Systemic Prejudice and Social Bias",
+                    "Corporate Consumerism and Technological Dependence",
+                    "Traditional Gender Role Subversion"
+                ]
+            },
+            {
+                id: 4,
+                scenario: "A protagonist actively rejects romantic rescue tropes, defying societal expectations of passivity to lead her community through self-reliance, courage, and independent problem-solving.",
+                correctAnswer: "Traditional Gender Role Subversion",
+                explanation: "This challenges patriarchal archetypes in animation, replacing passive characters with active, self-driven agents of change.",
+                options: [
+                    "Traditional Gender Role Subversion",
+                    "Class Stratification and Economic Division",
+                    "Corporate Consumerism and Technological Dependence",
+                    "Systemic Prejudice and Social Bias"
+                ]
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let streak = 0;
+
+        function initGame() {
+            currentIndex = 0;
+            score = 0;
+            streak = 0;
+            document.getElementById('completion-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            loadScenario();
+        }
+
+        function loadScenario() {
+            const current = scenarios[currentIndex];
+            document.getElementById('current-case-num').textContent = currentIndex + 1;
+            document.getElementById('total-cases').textContent = scenarios.length;
+            document.getElementById('score-val').textContent = score;
+            document.getElementById('streak-count').textContent = streak;
+            
+            document.getElementById('scenario-text').textContent = `"${current.scenario}"`;
+
+            // Shuffle options
+            const shuffledOptions = [...current.options].sort(() => Math.random() - 0.5);
+            
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+
+            shuffledOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-slate-950/80 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 p-4 rounded-xl text-slate-200 text-sm md:text-base font-medium transition flex items-center justify-between group";
+                btn.innerHTML = `<span>${option}</span> <span class="text-slate-600 group-hover:text-emerald-400 transition">➔</span>`;
+                btn.onclick = () => checkAnswer(option, current.correctAnswer);
+                optionsGrid.appendChild(btn);
+            });
+
+            document.getElementById('feedback-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+        }
+
+        function checkAnswer(selected, correct) {
+            const isCorrect = selected === correct;
+            const feedbackView = document.getElementById('feedback-view');
+            const quizView = document.getElementById('quiz-view');
+
+            quizView.classList.add('hidden');
+            feedbackView.classList.remove('hidden');
+
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDesc = document.getElementById('feedback-desc');
+
+            if (isCorrect) {
+                score += 100 + (streak * 25);
+                streak++;
+                feedbackIcon.textContent = "🎉";
+                feedbackTitle.textContent = "Brilliant Analysis!";
+                feedbackTitle.className = "cinzel text-2xl font-bold mb-2 text-emerald-400";
+                feedbackDesc.innerHTML = `<strong class="text-white">Correct!</strong> ${scenarios[currentIndex].explanation}`;
+            } else {
+                streak = 0;
+                feedbackIcon.textContent = "❌";
+                feedbackTitle.textContent = "Missed the Lens!";
+                feedbackTitle.className = "cinzel text-2xl font-bold mb-2 text-rose-400";
+                feedbackDesc.innerHTML = `<strong class="text-white">The correct social critique was: ${correct}.</strong><br><br>${scenarios[currentIndex].explanation}`;
+            }
+
+            document.getElementById('score-val').textContent = score;
+            document.getElementById('streak-count').textContent = streak;
+        }
+
+        function nextCase() {
+            currentIndex++;
+            if (currentIndex < scenarios.length) {
+                loadScenario();
+            } else {
+                showCompletion();
+            }
+        }
+
+        function showCompletion() {
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.getElementById('feedback-view').classList.add('hidden');
+            document.getElementById('completion-view').classList.remove('hidden');
+            document.getElementById('final-score').textContent = `${score} / ${scenarios.length * 100}`;
+            
+            const badge = document.getElementById('final-badge');
+            if (score >= 400) {
+                badge.textContent = "Rank: Master Animation Analyst 🌟";
+                badge.className = "text-xs uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/10 py-1 px-3 rounded border border-emerald-500/20";
+            } else {
+                badge.textContent = "Rank: Junior Analyst 🔍";
+                badge.className = "text-xs uppercase tracking-wider font-bold text-blue-400 bg-blue-500/10 py-1 px-3 rounded border border-blue-500/20";
+            }
+        }
+
+        function restartGame() {
+            initGame();
+        }
+
+        // Initialize on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
